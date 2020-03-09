@@ -7,12 +7,13 @@ import org.bson.conversions.Bson;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.System.getProperty;
 
 /**
  * @see com.mongodb.client.MongoClients
@@ -22,13 +23,12 @@ import java.util.concurrent.TimeUnit;
  */
 
 @SpringBootTest
-public class BasicMongoValidation extends AbstractTest{
+public class BasicMongoValidation extends BaseTestProperties{
 
-  private String uri = getProperty("spring.mongodb.uri");
-  private MongoClient mongoClient = MongoClients.create(uri);
-  private MongoDatabase database = mongoClient.getDatabase(getProperty("spring.mongodb.database"));
-  private MongoCollection<Document> collection = database.getCollection(getProperty("spring.mongodb.collection"));
-
+  String uri = getProperty("spring.mongodb.uri");
+  MongoClient mongoClient = MongoClients.create(uri);
+  MongoDatabase database = mongoClient.getDatabase(getProperty("spring.mongodb.database"));
+  MongoCollection<Document> collection = database.getCollection(getProperty("spring.mongodb.collection"));
   private Document document;
 
   public BasicMongoValidation() throws IOException {
@@ -36,9 +36,6 @@ public class BasicMongoValidation extends AbstractTest{
 
   @Test
   public void MongoClientInstance() {
-
-    mongoClient = MongoClients.create(uri);
-    Assert.assertNotNull(mongoClient);
 
     ConnectionString connectionString = new ConnectionString(uri);
     MongoClientSettings clientSettings =
@@ -57,7 +54,6 @@ public class BasicMongoValidation extends AbstractTest{
   @Test
   public void MongoDatabaseInstance() {
 
-    mongoClient = MongoClients.create(uri);
     MongoIterable<String> databaseIterable = mongoClient.listDatabaseNames();
     List<String> dbnames = new ArrayList<>();
     for (String name : databaseIterable) {
@@ -66,16 +62,12 @@ public class BasicMongoValidation extends AbstractTest{
     }
 
     Assert.assertTrue(dbnames.contains("trans"));
-    database = mongoClient.getDatabase("trans");
     ReadPreference readPreference = database.getReadPreference();
     Assert.assertEquals("primary", readPreference.getName());
   }
   @Test
   public void MongoCollectionInstance() {
 
-    mongoClient = MongoClients.create(uri);
-    database = mongoClient.getDatabase("trans");
-    collection = database.getCollection("transaction");
     MongoIterable<Document> cursor = collection.find().skip(10).limit(20);
 
     List<Document> documents = new ArrayList<>();
@@ -84,9 +76,6 @@ public class BasicMongoValidation extends AbstractTest{
 
   @Test
   public void DocumentInstance() {
-    mongoClient = MongoClients.create(uri);
-    database = mongoClient.getDatabase("trans");
-    collection = database.getCollection("transaction");
     document = new Document("name", new Document("first", "Norberto").append("last", "Leite"));
     collection.insertOne(document);
 
